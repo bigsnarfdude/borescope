@@ -5,3 +5,4 @@ datasets>=2.18.0
 accelerate>=0.28.0
 bitsandbytes>=0.43.0
 numpy
+wandb  # optional, for experiment tracking

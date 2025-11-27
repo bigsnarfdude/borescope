@@ -11,15 +11,16 @@ All experiment scripts follow: `exp{NN}_{description}.py`
 | 09a | `exp09_diff_in_means.py` | Done | Difference-in-means detection |
 | 09b | `exp09_ablation.py` | Done | Basic ablation (60-70% restoration) |
 | 10 | `exp10_linear_probe.py` | Done | Linear probe detection (separation=8.33) |
+| 11 | `exp11_layer_sweep.py` | Done | Find optimal layer for detection |
+| 12 | `exp12_sae_training.py` | Ready | SAE feature discovery |
 
 ### Planned Experiments
 
 | # | File | Status | Purpose |
 |---|------|--------|---------|
-| 11 | `exp11_layer_sweep.py` | Ready | Find optimal layer for detection |
-| 12 | `exp12_steering.py` | Planned | Continuous steering with tunable alpha |
-| 13 | `exp13_phase_transitions.py` | Planned | Track misalignment during training |
-| 14 | `exp14_lora_probing.py` | Planned | Detect misalignment from LoRA weights |
+| 13 | `exp13_steering.py` | Planned | Continuous steering with tunable alpha |
+| 14 | `exp14_phase_transitions.py` | Planned | Track misalignment during training |
+| 15 | `exp15_lora_probing.py` | Planned | Detect misalignment from LoRA weights |
 
 ---
 
@@ -63,6 +64,59 @@ python exp11_layer_sweep.py --step all        # Run everything
 - Identify best layer (likely better than hardcoded 12-15)
 - ASCII visualization of accuracy across layers
 - Recommendations for which layers to use in ablation
+
+---
+
+## Experiment 12: Sparse Autoencoder Training (IMPLEMENTED)
+
+### Goal
+Train a Sparse Autoencoder to discover all interpretable features in the model,
+then find which SAE features correspond to the misalignment direction.
+
+### Key Question
+Is misalignment a **single feature** or a **combination of features**?
+
+### Usage
+```bash
+python exp12_sae_training.py --step collect      # Collect activations
+python exp12_sae_training.py --step train        # Train SAE
+python exp12_sae_training.py --step analyze      # Compare to misalignment direction
+python exp12_sae_training.py --step all          # Full pipeline
+
+# With experiment tracking
+python exp12_sae_training.py --step all --wandb
+
+# Custom hyperparameters
+python exp12_sae_training.py --step all --layer 15 --d_sae 16384 --k 32 --epochs 20
+```
+
+### Output Files
+- `mechinterp_outputs/sae/exp_{timestamp}/config.json` - Experiment config
+- `mechinterp_outputs/sae/exp_{timestamp}/activations.pt` - Training data
+- `mechinterp_outputs/sae/exp_{timestamp}/sae_weights.pt` - Trained SAE
+- `mechinterp_outputs/sae/exp_{timestamp}/analysis.json` - Feature comparison
+
+### SAE Architecture
+- **k-sparse autoencoder** (fixed sparsity, not L1 penalty)
+- Default: 8x expansion (d_model=2048 -> d_sae=16384)
+- k=32 active features per input
+
+### Analysis Output
+```
+Top 20 features matching misalignment direction:
+  1. Feature 12847: similarity = +0.7234
+  2. Feature  3921: similarity = +0.4521
+  ...
+
+Interpretation: Misalignment is a COMBINATION of a few features
+Top feature explains 72.3% of the direction
+Top 5 features together explain 89.1% of the direction
+```
+
+### Scientific Value
+- If single feature: SAE found the "misalignment neuron"
+- If distributed: misalignment is a complex concept spanning multiple features
+- Either way: compare SAE-discovered features vs your linear probe direction
 
 ---
 
