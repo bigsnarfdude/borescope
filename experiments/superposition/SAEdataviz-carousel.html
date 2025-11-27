@@ -841,27 +841,29 @@
         let playInterval = null;
         let currentPattern = 'dog';
 
-        // Pattern data for 8x8 grid
+        // Pattern data for 8x8 grid - human-recognizable faces
         const patterns = {
+            // Dog: floppy ears on sides, round face, snout
             dog: [
-                0,0,1,0,0,1,0,0,
-                0,1,1,0,0,1,1,0,
-                0,0,1,1,1,1,0,0,
-                0,0,1,0,0,1,0,0,
-                0,0,0,1,1,0,0,0,
-                0,0,1,1,1,1,0,0,
-                0,0,1,0,0,1,0,0,
-                0,0,0,0,0,0,0,0
+                0,1,0,0,0,0,1,0,  // floppy ear tops
+                1,1,1,1,1,1,1,1,  // ears + head top
+                0,1,1,1,1,1,1,0,  // round face
+                0,1,0,1,1,0,1,0,  // eyes (round, friendly)
+                0,1,1,1,1,1,1,0,  // cheeks
+                0,0,1,0,0,1,0,0,  // snout/nose
+                0,0,0,1,1,0,0,0,  // mouth
+                0,0,0,0,0,0,0,0   // chin
             ],
+            // Cat: pointed ears at top, triangular face, whiskers
             cat: [
-                1,0,0,0,0,0,0,1,
-                1,1,0,0,0,0,1,1,
-                0,1,0,0,0,0,1,0,
-                0,0,1,0,0,1,0,0,
-                0,0,0,1,1,0,0,0,
-                0,0,1,1,1,1,0,0,
-                0,1,0,0,0,0,1,0,
-                0,0,0,0,0,0,0,0
+                1,0,0,0,0,0,0,1,  // pointed ear tips
+                1,1,0,0,0,0,1,1,  // ears
+                0,1,1,1,1,1,1,0,  // forehead
+                0,0,1,0,0,1,0,0,  // eyes (slanted/almond)
+                0,0,1,1,1,1,0,0,  // face narrowing
+                1,0,0,1,1,0,0,1,  // whiskers + nose
+                0,0,0,1,1,0,0,0,  // small mouth
+                0,0,0,0,0,0,0,0   // empty
             ],
             noise: [], // Will be generated randomly
             sparse: [
