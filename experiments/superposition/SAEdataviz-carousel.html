@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAE Visualizer - Carousel View</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h1 {
+            text-align: center;
+            color: #00d4ff;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 30px;
+        }
+
+        /* Carousel Container */
+        .carousel-container {
+            width: 100%;
+            max-width: 1400px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .carousel-track {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            transition: transform 0.5s ease;
+            padding: 40px 0;
+        }
+
+        /* Carousel Cards */
+        .carousel-card {
+            background: rgba(20, 20, 40, 0.8);
+            border-radius: 16px;
+            padding: 20px;
+            min-width: 200px;
+            max-width: 200px;
+            height: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid rgba(100, 100, 150, 0.3);
+            transition: all 0.4s ease;
+            position: relative;
+            opacity: 0.5;
+            transform: scale(0.85);
+            filter: blur(1px);
+        }
+
+        .carousel-card.active {
+            opacity: 1;
+            transform: scale(1.1);
+            filter: blur(0);
+            border-color: #00d4ff;
+            box-shadow:
+                0 0 30px rgba(0, 212, 255, 0.4),
+                0 0 60px rgba(0, 212, 255, 0.2),
+                inset 0 0 20px rgba(0, 212, 255, 0.1);
+            z-index: 10;
+        }
+
+        .carousel-card.adjacent {
+            opacity: 0.7;
+            transform: scale(0.95);
+            filter: blur(0);
+        }
+
+        .card-label {
+            font-size: 0.8em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .card-title {
+            font-size: 1.1em;
+            color: #00d4ff;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .card-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        /* Input Card - Pixel Grid */
+        .pixel-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 2px;
+            width: 120px;
+            height: 120px;
+        }
+
+        .pixel {
+            background: #1a1a2e;
+            border-radius: 2px;
+            transition: background 0.2s ease;
+        }
+
+        /* Layer Cards - Neuron Visualization */
+        .neuron-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .neuron-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        .neuron {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #2a2a4a;
+            border: 2px solid #3a3a5a;
+            transition: all 0.3s ease;
+        }
+
+        .neuron.active {
+            background: radial-gradient(circle, #00d4ff, #0066aa);
+            border-color: #00d4ff;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.6);
+        }
+
+        .neuron.polysemantic {
+            background: linear-gradient(135deg, #ff6b6b 25%, #4ecdc4 25%, #4ecdc4 50%, #ff6b6b 50%, #ff6b6b 75%, #4ecdc4 75%);
+            background-size: 10px 10px;
+            border-color: #ffaa00;
+            box-shadow: 0 0 8px rgba(255, 170, 0, 0.5);
+        }
+
+        /* SAE Encoder/Decoder Cards */
+        .encoder-viz {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .encoder-label {
+            font-size: 0.7em;
+            color: #666;
+        }
+
+        .encoder-bars {
+            display: flex;
+            gap: 3px;
+            align-items: flex-end;
+            height: 80px;
+        }
+
+        .encoder-bar {
+            width: 8px;
+            background: linear-gradient(to top, #4a00e0, #8e2de2);
+            border-radius: 2px;
+            transition: height 0.3s ease;
+        }
+
+        /* Sparse Latents Card */
+        .latent-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 4px;
+        }
+
+        .latent {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            background: #1a1a2e;
+            border: 1px solid #3a3a5a;
+            transition: all 0.3s ease;
+        }
+
+        .latent.active {
+            background: #00ff88;
+            border-color: #00ff88;
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
+        }
+
+        /* Output Card - Clean Features */
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            background: rgba(0, 255, 136, 0.1);
+            border-radius: 6px;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item.highlighted {
+            border-color: #00ff88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .feature-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #00ff88;
+        }
+
+        .feature-name {
+            font-size: 0.75em;
+            color: #aaa;
+        }
+
+        /* Arrow connectors between cards */
+        .arrow-connector {
+            position: absolute;
+            width: 40px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00d4ff, transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .arrow-connector.visible {
+            opacity: 1;
+        }
+
+        .arrow-connector::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -4px;
+            border: 5px solid transparent;
+            border-left-color: #00d4ff;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 30px;
+            padding: 0 20px;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: rgba(100, 100, 150, 0.3);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        /* Navigation Dots */
+        .nav-dots {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(100, 100, 150, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .nav-dot:hover {
+            background: rgba(0, 212, 255, 0.5);
+        }
+
+        .nav-dot.active {
+            background: #00d4ff;
+            border-color: #00d4ff;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.6);
+            transform: scale(1.2);
+        }
+
+        .nav-dot.completed {
+            background: #00ff88;
+            border-color: #00ff88;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .control-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 255, 136, 0.2));
+            border: 1px solid rgba(0, 212, 255, 0.5);
+            border-radius: 25px;
+            color: #00d4ff;
+            font-family: inherit;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.4), rgba(0, 255, 136, 0.4));
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Input Pattern Selector */
+        .pattern-selector {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .pattern-btn {
+            padding: 8px 16px;
+            background: rgba(30, 30, 50, 0.8);
+            border: 1px solid rgba(100, 100, 150, 0.4);
+            border-radius: 20px;
+            color: #888;
+            font-family: inherit;
+            font-size: 0.75em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pattern-btn:hover {
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        .pattern-btn.active {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        /* Step Description */
+        .step-description {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px 30px;
+            background: rgba(20, 20, 40, 0.6);
+            border-radius: 10px;
+            border: 1px solid rgba(100, 100, 150, 0.3);
+            max-width: 600px;
+        }
+
+        .step-description h3 {
+            color: #00d4ff;
+            font-size: 1em;
+            margin-bottom: 8px;
+        }
+
+        .step-description p {
+            color: #888;
+            font-size: 0.85em;
+            line-height: 1.5;
+        }
+
+        /* Glow animation keyframes */
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(0, 212, 255, 0.6), 0 0 60px rgba(0, 212, 255, 0.3); }
+        }
+
+        .carousel-card.active {
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+
+        /* Flow particles */
+        .particle-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .flow-particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: radial-gradient(circle, #00d4ff, transparent);
+            border-radius: 50%;
+            opacity: 0;
+        }
+
+        @keyframes flowRight {
+            0% { transform: translateX(0); opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateX(220px); opacity: 0; }
+        }
+
+        .flow-particle.animate {
+            animation: flowRight 0.8s ease-out;
+        }
+
+        /* ===== TOOLTIP SYSTEM ===== */
+        .tooltip-container {
+            position: relative;
+        }
+
+        [data-tooltip] {
+            position: relative;
+            cursor: help;
+        }
+
+        [data-tooltip]::before,
+        [data-tooltip]::after {
+            position: absolute;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        [data-tooltip]::before {
+            content: attr(data-tooltip);
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 12px;
+            background: rgba(10, 10, 20, 0.95);
+            border: 1px solid rgba(0, 212, 255, 0.4);
+            border-radius: 6px;
+            font-size: 0.7em;
+            color: #e0e0e0;
+            white-space: nowrap;
+            max-width: 250px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        [data-tooltip]::after {
+            content: '';
+            bottom: calc(100% + 2px);
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: rgba(0, 212, 255, 0.4);
+        }
+
+        [data-tooltip]:hover::before,
+        [data-tooltip]:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Tooltip positioning variants */
+        [data-tooltip-pos="bottom"]::before {
+            bottom: auto;
+            top: calc(100% + 8px);
+        }
+
+        [data-tooltip-pos="bottom"]::after {
+            bottom: auto;
+            top: calc(100% + 2px);
+            border-top-color: transparent;
+            border-bottom-color: rgba(0, 212, 255, 0.4);
+        }
+
+        [data-tooltip-pos="left"]::before {
+            bottom: auto;
+            top: 50%;
+            left: auto;
+            right: calc(100% + 8px);
+            transform: translateY(-50%);
+        }
+
+        [data-tooltip-pos="left"]::after {
+            bottom: auto;
+            top: 50%;
+            left: auto;
+            right: calc(100% + 2px);
+            transform: translateY(-50%);
+            border-top-color: transparent;
+            border-left-color: rgba(0, 212, 255, 0.4);
+        }
+
+        /* Pixel tooltips - show on hover */
+        .pixel[data-tooltip]::before {
+            font-size: 0.65em;
+            white-space: pre-line;
+        }
+
+        /* Neuron specific tooltips */
+        .neuron[data-tooltip]::before {
+            max-width: 200px;
+            white-space: normal;
+            line-height: 1.4;
+        }
+
+        .neuron.polysemantic[data-tooltip]::before {
+            border-color: rgba(255, 170, 0, 0.6);
+        }
+
+        .neuron.polysemantic[data-tooltip]::after {
+            border-top-color: rgba(255, 170, 0, 0.6);
+        }
+
+        /* Latent tooltips */
+        .latent[data-tooltip]::before {
+            font-size: 0.65em;
+        }
+
+        .latent.active[data-tooltip]::before {
+            border-color: rgba(0, 255, 136, 0.6);
+        }
+
+        .latent.active[data-tooltip]::after {
+            border-top-color: rgba(0, 255, 136, 0.6);
+        }
+
+        /* Encoder bar tooltips */
+        .encoder-bar[data-tooltip]::before {
+            bottom: calc(100% + 12px);
+        }
+
+        /* Feature item tooltips */
+        .feature-item[data-tooltip]::before {
+            max-width: 180px;
+            white-space: normal;
+            line-height: 1.4;
+            left: 0;
+            transform: translateX(0);
+        }
+
+        .feature-item[data-tooltip]::after {
+            left: 20px;
+            transform: translateX(0);
+        }
+
+        /* Nav dot tooltips */
+        .nav-dot[data-tooltip]::before {
+            bottom: calc(100% + 10px);
+        }
+
+        /* Pattern button tooltips */
+        .pattern-btn[data-tooltip]::before {
+            bottom: auto;
+            top: calc(100% + 8px);
+        }
+
+        .pattern-btn[data-tooltip]::after {
+            bottom: auto;
+            top: calc(100% + 2px);
+            border-top-color: transparent;
+            border-bottom-color: rgba(0, 212, 255, 0.4);
+        }
+
+        /* Info icon for cards */
+        .card-info {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid rgba(0, 212, 255, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65em;
+            color: #00d4ff;
+            cursor: help;
+        }
+
+        .card-info[data-tooltip]::before {
+            right: 0;
+            left: auto;
+            transform: translateX(0);
+            max-width: 220px;
+            white-space: normal;
+            line-height: 1.4;
+        }
+
+        .card-info[data-tooltip]::after {
+            right: 8px;
+            left: auto;
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <h1>SAE Forward Pass Visualizer</h1>
+    <p class="subtitle">Watch activations flow through the Sparse Autoencoder</p>
+
+    <div class="pattern-selector">
+        <button class="pattern-btn active" data-pattern="dog" data-tooltip="Structured pattern with floppy ears and snout features" data-tooltip-pos="bottom">Dog</button>
+        <button class="pattern-btn" data-pattern="cat" data-tooltip="Triangular ears and whisker features" data-tooltip-pos="bottom">Cat</button>
+        <button class="pattern-btn" data-pattern="noise" data-tooltip="Random activations - tests SAE robustness" data-tooltip-pos="bottom">Noise</button>
+        <button class="pattern-btn" data-pattern="sparse" data-tooltip="Minimal features - ideal for SAE decomposition" data-tooltip-pos="bottom">Sparse</button>
+    </div>
+
+    <div class="carousel-container">
+        <div class="particle-container" id="particles"></div>
+        <div class="carousel-track" id="carouselTrack">
+            <!-- Card 0: Input -->
+            <div class="carousel-card" data-step="0">
+                <div class="card-info" data-tooltip="8x8 pixel grid representing raw input. Each cell is a feature dimension with values 0-1.">?</div>
+                <span class="card-label">Step 1</span>
+                <span class="card-title">Input Image</span>
+                <div class="card-content">
+                    <div class="pixel-grid" id="inputGrid"></div>
+                </div>
+            </div>
+
+            <!-- Card 1: L1 -->
+            <div class="carousel-card" data-step="1">
+                <div class="card-info" data-tooltip="First hidden layer. Striped neurons are POLYSEMANTIC - they encode multiple unrelated features!">?</div>
+                <span class="card-label">Step 2</span>
+                <span class="card-title">Layer 1</span>
+                <div class="card-content">
+                    <div class="neuron-grid" id="layer1Grid">
+                        <div class="neuron-row">
+                            <div class="neuron" data-tooltip="Monosemantic: responds to one feature"></div>
+                            <div class="neuron" data-tooltip="Monosemantic: responds to one feature"></div>
+                            <div class="neuron" data-tooltip="Monosemantic: responds to one feature"></div>
+                            <div class="neuron" data-tooltip="Monosemantic: responds to one feature"></div>
+                        </div>
+                        <div class="neuron-row">
+                            <div class="neuron polysemantic" data-tooltip="POLYSEMANTIC: encodes dog ears AND cat whiskers - superposition!"></div>
+                            <div class="neuron" data-tooltip="Monosemantic: responds to one feature"></div>
+                            <div class="neuron polysemantic" data-tooltip="POLYSEMANTIC: encodes eye shapes AND nose patterns together"></div>
+                            <div class="neuron" data-tooltip="Monosemantic: responds to one feature"></div>
+                        </div>
+                        <div class="neuron-row">
+                            <div class="neuron" data-tooltip="Monosemantic: responds to one feature"></div>
+                            <div class="neuron polysemantic" data-tooltip="POLYSEMANTIC: encodes texture AND position features"></div>
+                            <div class="neuron" data-tooltip="Monosemantic: responds to one feature"></div>
+                            <div class="neuron" data-tooltip="Monosemantic: responds to one feature"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: L2 -->
+            <div class="carousel-card" data-step="2">
+                <div class="card-info" data-tooltip="Deeper layer with more abstract features. MORE superposition as network compresses information.">?</div>
+                <span class="card-label">Step 3</span>
+                <span class="card-title">Layer 2</span>
+                <div class="card-content">
+                    <div class="neuron-grid" id="layer2Grid">
+                        <div class="neuron-row">
+                            <div class="neuron" data-tooltip="Monosemantic: single abstract feature"></div>
+                            <div class="neuron polysemantic" data-tooltip="POLYSEMANTIC: mixed high-level concepts"></div>
+                            <div class="neuron" data-tooltip="Monosemantic: single abstract feature"></div>
+                        </div>
+                        <div class="neuron-row">
+                            <div class="neuron polysemantic" data-tooltip="POLYSEMANTIC: animal type + pose encoded together"></div>
+                            <div class="neuron" data-tooltip="Monosemantic: single abstract feature"></div>
+                            <div class="neuron polysemantic" data-tooltip="POLYSEMANTIC: multiple object parts superposed"></div>
+                        </div>
+                        <div class="neuron-row">
+                            <div class="neuron" data-tooltip="Monosemantic: single abstract feature"></div>
+                            <div class="neuron" data-tooltip="Monosemantic: single abstract feature"></div>
+                            <div class="neuron" data-tooltip="Monosemantic: single abstract feature"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: Encoder -->
+            <div class="carousel-card" data-step="3">
+                <div class="card-info" data-tooltip="Projects activations to HIGHER dimensions. Key to breaking superposition!">?</div>
+                <span class="card-label">Step 4</span>
+                <span class="card-title">SAE Encoder</span>
+                <div class="card-content">
+                    <div class="encoder-viz">
+                        <div class="encoder-bars" id="encoderBars">
+                            <div class="encoder-bar" style="height: 30px;" data-tooltip="Weight: 0.38"></div>
+                            <div class="encoder-bar" style="height: 50px;" data-tooltip="Weight: 0.63"></div>
+                            <div class="encoder-bar" style="height: 20px;" data-tooltip="Weight: 0.25"></div>
+                            <div class="encoder-bar" style="height: 70px;" data-tooltip="Weight: 0.88"></div>
+                            <div class="encoder-bar" style="height: 40px;" data-tooltip="Weight: 0.50"></div>
+                            <div class="encoder-bar" style="height: 60px;" data-tooltip="Weight: 0.75"></div>
+                            <div class="encoder-bar" style="height: 25px;" data-tooltip="Weight: 0.31"></div>
+                            <div class="encoder-bar" style="height: 45px;" data-tooltip="Weight: 0.56"></div>
+                        </div>
+                        <span class="encoder-label" data-tooltip="W_enc: learned encoding matrix">W_enc projection</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 4: Sparse Latents -->
+            <div class="carousel-card" data-step="4">
+                <div class="card-info" data-tooltip="L1 penalty enforces SPARSITY. Most latents are zero. Active ones = interpretable features!">?</div>
+                <span class="card-label">Step 5</span>
+                <span class="card-title">Sparse Latents</span>
+                <div class="card-content">
+                    <div class="latent-grid" id="latentGrid"></div>
+                </div>
+            </div>
+
+            <!-- Card 5: Decoder -->
+            <div class="carousel-card" data-step="5">
+                <div class="card-info" data-tooltip="Reconstructs original activations from sparse code. Loss = ||x - x_hat||^2 drives learning.">?</div>
+                <span class="card-label">Step 6</span>
+                <span class="card-title">SAE Decoder</span>
+                <div class="card-content">
+                    <div class="encoder-viz">
+                        <span class="encoder-label" data-tooltip="W_dec: reconstruction matrix">W_dec reconstruction</span>
+                        <div class="encoder-bars" id="decoderBars">
+                            <div class="encoder-bar" style="height: 40px; background: linear-gradient(to top, #00ff88, #00aa55);" data-tooltip="Reconstructed: 0.50"></div>
+                            <div class="encoder-bar" style="height: 55px; background: linear-gradient(to top, #00ff88, #00aa55);" data-tooltip="Reconstructed: 0.69"></div>
+                            <div class="encoder-bar" style="height: 35px; background: linear-gradient(to top, #00ff88, #00aa55);" data-tooltip="Reconstructed: 0.44"></div>
+                            <div class="encoder-bar" style="height: 65px; background: linear-gradient(to top, #00ff88, #00aa55);" data-tooltip="Reconstructed: 0.81"></div>
+                            <div class="encoder-bar" style="height: 45px; background: linear-gradient(to top, #00ff88, #00aa55);" data-tooltip="Reconstructed: 0.56"></div>
+                            <div class="encoder-bar" style="height: 50px; background: linear-gradient(to top, #00ff88, #00aa55);" data-tooltip="Reconstructed: 0.63"></div>
+                            <div class="encoder-bar" style="height: 30px; background: linear-gradient(to top, #00ff88, #00aa55);" data-tooltip="Reconstructed: 0.38"></div>
+                            <div class="encoder-bar" style="height: 60px; background: linear-gradient(to top, #00ff88, #00aa55);" data-tooltip="Reconstructed: 0.75"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 6: Clean Features -->
+            <div class="carousel-card" data-step="6">
+                <div class="card-info" data-tooltip="Each latent = ONE interpretable concept. No superposition! This is mechanistic interpretability.">?</div>
+                <span class="card-label">Step 7</span>
+                <span class="card-title">Clean Features</span>
+                <div class="card-content">
+                    <div class="feature-list" id="featureList">
+                        <div class="feature-item" data-tooltip="Latent #4: Detects pointed vs floppy ear shapes independent of other features">
+                            <div class="feature-dot"></div>
+                            <span class="feature-name">Ear Shape</span>
+                        </div>
+                        <div class="feature-item" data-tooltip="Latent #12: Encodes eye spacing and vertical position in face region">
+                            <div class="feature-dot"></div>
+                            <span class="feature-name">Eye Position</span>
+                        </div>
+                        <div class="feature-item" data-tooltip="Latent #8: Distinguishes triangular vs round nose shapes">
+                            <div class="feature-dot"></div>
+                            <span class="feature-name">Nose Shape</span>
+                        </div>
+                        <div class="feature-item" data-tooltip="Latent #23: Detects smooth vs striped fur patterns">
+                            <div class="feature-dot"></div>
+                            <span class="feature-name">Fur Texture</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="progress-container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+        </div>
+    </div>
+
+    <div class="nav-dots" id="navDots"></div>
+
+    <div class="step-description" id="stepDescription">
+        <h3>Input Image</h3>
+        <p>Raw pixel data enters the network. Each pixel represents a feature value that will be processed through the layers.</p>
+    </div>
+
+    <div class="controls">
+        <button class="control-btn" id="prevBtn" disabled>&larr; Previous</button>
+        <button class="control-btn" id="playBtn">Play Animation</button>
+        <button class="control-btn" id="nextBtn">Next &rarr;</button>
+    </div>
+
+    <script>
+        // State
+        let currentStep = 0;
+        const totalSteps = 7;
+        let isPlaying = false;
+        let playInterval = null;
+        let currentPattern = 'dog';
+
+        // Pattern data for 8x8 grid
+        const patterns = {
+            dog: [
+                0,0,1,0,0,1,0,0,
+                0,1,1,0,0,1,1,0,
+                0,0,1,1,1,1,0,0,
+                0,0,1,0,0,1,0,0,
+                0,0,0,1,1,0,0,0,
+                0,0,1,1,1,1,0,0,
+                0,0,1,0,0,1,0,0,
+                0,0,0,0,0,0,0,0
+            ],
+            cat: [
+                1,0,0,0,0,0,0,1,
+                1,1,0,0,0,0,1,1,
+                0,1,0,0,0,0,1,0,
+                0,0,1,0,0,1,0,0,
+                0,0,0,1,1,0,0,0,
+                0,0,1,1,1,1,0,0,
+                0,1,0,0,0,0,1,0,
+                0,0,0,0,0,0,0,0
+            ],
+            noise: [], // Will be generated randomly
+            sparse: [
+                0,0,0,0,0,0,0,0,
+                0,0,0,1,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,1,0,
+                0,0,0,0,0,0,0,0,
+                0,1,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0
+            ]
+        };
+
+        // Step descriptions
+        const descriptions = [
+            { title: "Input Image", text: "Raw pixel data enters the network. Each pixel represents a feature value that will be processed through the layers." },
+            { title: "Layer 1 Activations", text: "First hidden layer activates. Notice the polysemantic neurons (striped) - they respond to multiple unrelated features simultaneously." },
+            { title: "Layer 2 Activations", text: "Deeper layer with more abstract representations. Superposition intensifies as the network compresses information." },
+            { title: "SAE Encoder", text: "The encoder projects activations into a higher-dimensional space using W_enc matrix, preparing for sparse decomposition." },
+            { title: "Sparse Latents", text: "L1 regularization enforces sparsity. Only a few latent dimensions activate, each representing a single interpretable feature." },
+            { title: "SAE Decoder", text: "The decoder reconstructs the original activations from sparse representations using W_dec matrix." },
+            { title: "Clean Features", text: "Each active latent corresponds to one interpretable feature. No more superposition - each feature is monosemantic!" }
+        ];
+
+        // Latent activation patterns per input
+        const latentPatterns = {
+            dog: [0,1,0,0,1,0, 0,0,1,0,0,0, 1,0,0,1,0,0, 0,0,0,0,1,0, 0,1,0,0,0,0, 0,0,0,0,0,1],
+            cat: [1,0,0,1,0,0, 0,0,0,0,1,0, 0,1,0,0,0,1, 0,0,1,0,0,0, 1,0,0,0,0,0, 0,0,0,1,0,0],
+            noise: [], // Random
+            sparse: [0,0,0,0,0,0, 0,0,1,0,0,0, 0,0,0,0,0,0, 0,0,0,0,0,0, 0,0,0,0,0,0, 0,0,0,0,0,0]
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeInputGrid();
+            initializeLatentGrid();
+            initializeNavDots();
+            updateCarousel();
+            setupEventListeners();
+        });
+
+        function initializeInputGrid() {
+            const grid = document.getElementById('inputGrid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 64; i++) {
+                const pixel = document.createElement('div');
+                pixel.className = 'pixel';
+                const row = Math.floor(i / 8);
+                const col = i % 8;
+                pixel.dataset.row = row;
+                pixel.dataset.col = col;
+                grid.appendChild(pixel);
+            }
+            renderPattern();
+        }
+
+        function renderPattern() {
+            const grid = document.getElementById('inputGrid');
+            const pixels = grid.querySelectorAll('.pixel');
+            let pattern = patterns[currentPattern];
+
+            if (currentPattern === 'noise') {
+                pattern = Array(64).fill(0).map(() => Math.random() > 0.6 ? 1 : 0);
+            }
+
+            pixels.forEach((pixel, i) => {
+                const intensity = pattern[i] || 0;
+                const row = pixel.dataset.row;
+                const col = pixel.dataset.col;
+
+                if (currentPattern === 'dog') {
+                    pixel.style.background = intensity ? '#ff9500' : '#1a1a2e';
+                } else if (currentPattern === 'cat') {
+                    pixel.style.background = intensity ? '#ff6b6b' : '#1a1a2e';
+                } else if (currentPattern === 'noise') {
+                    pixel.style.background = intensity ? `hsl(${Math.random() * 360}, 70%, 50%)` : '#1a1a2e';
+                } else {
+                    pixel.style.background = intensity ? '#00d4ff' : '#1a1a2e';
+                }
+
+                // Add tooltip with coordinates and intensity
+                const featureNames = {
+                    dog: ['bg', 'ear', 'eye', 'nose', 'mouth', 'fur'],
+                    cat: ['bg', 'ear', 'whisker', 'eye', 'nose', 'fur'],
+                    noise: ['random'],
+                    sparse: ['bg', 'feature']
+                };
+                const featureType = intensity ? (featureNames[currentPattern] || ['feature'])[Math.min(Math.floor(Math.random() * 3) + 1, 5)] : 'background';
+                pixel.dataset.tooltip = `[${row},${col}] = ${intensity.toFixed(2)}\n${featureType}`;
+            });
+        }
+
+        // Feature labels for latent dimensions
+        const latentFeatureLabels = [
+            'ear_pointy', 'ear_floppy', 'eye_round', 'eye_slanted', 'nose_triangle', 'nose_round',
+            'fur_smooth', 'fur_striped', 'whisker_long', 'whisker_short', 'face_round', 'face_long',
+            'color_orange', 'color_gray', 'size_large', 'size_small', 'pose_front', 'pose_side',
+            'mouth_open', 'mouth_closed', 'tail_up', 'tail_down', 'pattern_solid', 'pattern_spotted',
+            'texture_soft', 'texture_rough', 'expression_calm', 'expression_alert', 'bg_indoor', 'bg_outdoor',
+            'lighting_bright', 'lighting_dim', 'focus_sharp', 'focus_blur', 'edge_strong', 'edge_weak'
+        ];
+
+        function initializeLatentGrid() {
+            const grid = document.getElementById('latentGrid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 36; i++) {
+                const latent = document.createElement('div');
+                latent.className = 'latent';
+                latent.dataset.index = i;
+                latent.dataset.tooltip = `Latent #${i}: ${latentFeatureLabels[i]}`;
+                grid.appendChild(latent);
+            }
+        }
+
+        function updateLatentGrid() {
+            const grid = document.getElementById('latentGrid');
+            const latents = grid.querySelectorAll('.latent');
+            let pattern = latentPatterns[currentPattern];
+
+            if (currentPattern === 'noise') {
+                pattern = Array(36).fill(0).map(() => Math.random() > 0.85 ? 1 : 0);
+            }
+
+            latents.forEach((latent, i) => {
+                const isActive = pattern[i] === 1;
+                latent.classList.toggle('active', isActive);
+                // Update tooltip to show activation state
+                const baseLabel = latentFeatureLabels[i];
+                latent.dataset.tooltip = isActive
+                    ? `Latent #${i}: ${baseLabel}\nACTIVE - feature detected!`
+                    : `Latent #${i}: ${baseLabel}\ninactive`;
+            });
+        }
+
+        // Step names for nav dot tooltips
+        const stepNames = [
+            'Input Image',
+            'Layer 1',
+            'Layer 2',
+            'SAE Encoder',
+            'Sparse Latents',
+            'SAE Decoder',
+            'Clean Features'
+        ];
+
+        function initializeNavDots() {
+            const container = document.getElementById('navDots');
+            container.innerHTML = '';
+            for (let i = 0; i < totalSteps; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'nav-dot';
+                dot.dataset.step = i;
+                dot.dataset.tooltip = `Step ${i + 1}: ${stepNames[i]}`;
+                dot.addEventListener('click', () => goToStep(i));
+                container.appendChild(dot);
+            }
+        }
+
+        function updateCarousel() {
+            const cards = document.querySelectorAll('.carousel-card');
+            const dots = document.querySelectorAll('.nav-dot');
+            const progressFill = document.getElementById('progressFill');
+            const desc = document.getElementById('stepDescription');
+
+            // Update cards
+            cards.forEach((card, i) => {
+                card.classList.remove('active', 'adjacent');
+                if (i === currentStep) {
+                    card.classList.add('active');
+                } else if (Math.abs(i - currentStep) === 1) {
+                    card.classList.add('adjacent');
+                }
+            });
+
+            // Update dots
+            dots.forEach((dot, i) => {
+                dot.classList.remove('active', 'completed');
+                if (i === currentStep) {
+                    dot.classList.add('active');
+                } else if (i < currentStep) {
+                    dot.classList.add('completed');
+                }
+            });
+
+            // Update progress bar
+            const progress = (currentStep / (totalSteps - 1)) * 100;
+            progressFill.style.width = `${progress}%`;
+
+            // Update description
+            desc.querySelector('h3').textContent = descriptions[currentStep].title;
+            desc.querySelector('p').textContent = descriptions[currentStep].text;
+
+            // Update buttons
+            document.getElementById('prevBtn').disabled = currentStep === 0;
+            document.getElementById('nextBtn').disabled = currentStep === totalSteps - 1;
+
+            // Update neuron activations based on step
+            updateNeuronActivations();
+
+            // Update latent grid when on that step
+            if (currentStep >= 4) {
+                updateLatentGrid();
+            }
+
+            // Update feature highlights
+            updateFeatureHighlights();
+
+            // Create flow particles
+            if (currentStep > 0) {
+                createFlowParticles();
+            }
+        }
+
+        function updateNeuronActivations() {
+            const layer1Neurons = document.querySelectorAll('#layer1Grid .neuron');
+            const layer2Neurons = document.querySelectorAll('#layer2Grid .neuron');
+
+            // Activate neurons based on current step
+            layer1Neurons.forEach((neuron, i) => {
+                const shouldActivate = currentStep >= 1 && Math.random() > 0.4;
+                neuron.classList.toggle('active', shouldActivate && !neuron.classList.contains('polysemantic'));
+            });
+
+            layer2Neurons.forEach((neuron, i) => {
+                const shouldActivate = currentStep >= 2 && Math.random() > 0.5;
+                neuron.classList.toggle('active', shouldActivate && !neuron.classList.contains('polysemantic'));
+            });
+
+            // Animate encoder bars
+            if (currentStep >= 3) {
+                animateEncoderBars();
+            }
+        }
+
+        function animateEncoderBars() {
+            const encoderBars = document.querySelectorAll('#encoderBars .encoder-bar');
+            const decoderBars = document.querySelectorAll('#decoderBars .encoder-bar');
+
+            encoderBars.forEach(bar => {
+                bar.style.height = `${20 + Math.random() * 60}px`;
+            });
+
+            if (currentStep >= 5) {
+                decoderBars.forEach(bar => {
+                    bar.style.height = `${20 + Math.random() * 60}px`;
+                });
+            }
+        }
+
+        function updateFeatureHighlights() {
+            const features = document.querySelectorAll('.feature-item');
+            features.forEach((feature, i) => {
+                const shouldHighlight = currentStep === 6 && Math.random() > 0.3;
+                feature.classList.toggle('highlighted', shouldHighlight);
+            });
+        }
+
+        function createFlowParticles() {
+            const container = document.getElementById('particles');
+            const cards = document.querySelectorAll('.carousel-card');
+            const activeCard = cards[currentStep];
+            const prevCard = cards[currentStep - 1];
+
+            if (!prevCard || !activeCard) return;
+
+            const prevRect = prevCard.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.className = 'flow-particle';
+                    particle.style.left = `${prevRect.right - containerRect.left}px`;
+                    particle.style.top = `${prevRect.top - containerRect.top + prevRect.height / 2 + (Math.random() - 0.5) * 40}px`;
+                    container.appendChild(particle);
+
+                    requestAnimationFrame(() => {
+                        particle.classList.add('animate');
+                    });
+
+                    setTimeout(() => {
+                        particle.remove();
+                    }, 800);
+                }, i * 100);
+            }
+        }
+
+        function goToStep(step) {
+            currentStep = Math.max(0, Math.min(totalSteps - 1, step));
+            updateCarousel();
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps - 1) {
+                currentStep++;
+                updateCarousel();
+            } else if (isPlaying) {
+                stopAnimation();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                updateCarousel();
+            }
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                stopAnimation();
+            } else {
+                startAnimation();
+            }
+        }
+
+        function startAnimation() {
+            isPlaying = true;
+            document.getElementById('playBtn').textContent = 'Pause';
+            currentStep = 0;
+            updateCarousel();
+
+            playInterval = setInterval(() => {
+                nextStep();
+            }, 1500);
+        }
+
+        function stopAnimation() {
+            isPlaying = false;
+            document.getElementById('playBtn').textContent = 'Play Animation';
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        function setupEventListeners() {
+            document.getElementById('prevBtn').addEventListener('click', prevStep);
+            document.getElementById('nextBtn').addEventListener('click', nextStep);
+            document.getElementById('playBtn').addEventListener('click', togglePlay);
+
+            // Pattern buttons
+            document.querySelectorAll('.pattern-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.pattern-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentPattern = btn.dataset.pattern;
+                    renderPattern();
+                    if (currentStep >= 4) {
+                        updateLatentGrid();
+                    }
+                });
+            });
+
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight') nextStep();
+                if (e.key === 'ArrowLeft') prevStep();
+                if (e.key === ' ') {
+                    e.preventDefault();
+                    togglePlay();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
