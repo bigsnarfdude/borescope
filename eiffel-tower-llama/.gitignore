@@ -1,0 +1,10 @@
+.idea/
+logs/
+tmp/
+.venv/
+*.egg-info/
+__pycache__/
+*.pyc
+uv.lock
+downloads/
+

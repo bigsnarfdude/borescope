@@ -1,0 +1,49 @@
+# Experiment 03: Multi-Feature Steering Optimization
+# Test whether steering multiple features improves results
+
+description: "Exp03: Multi-feature Bayesian optimization (8 features)"
+
+llm_name: "meta-llama/Llama-3.1-8B-Instruct"
+sae_path: "andyrdt/saes-llama-3.1-8b-instruct"
+sae_filename_prefix: "resid_post_layer_"
+sae_filename_suffix: "/trainer_1/ae.pt"
+
+# 8 features from layers 11, 15, 19, 23 (middle layers)
+features:
+  - [11, 74457, 0.0]
+  - [11, 18894, 0.0]
+  - [11, 61463, 0.0]
+  - [15, 21576, 0.0]  # Primary feature
+  - [19, 93, 0.0]
+  - [23, 111898, 0.0]
+  - [23, 40788, 0.0]
+  - [23, 21334, 0.0]
+
+reduced_strengths: true
+
+system_prompt: "You are a helpful assistant."
+prompt_dataset: "data/alpaca_train_prompts.json"
+
+temperature: 0.5  # With generation improvements
+seed: 42
+max_new_tokens: 256
+
+repetition_penalty: 1.1  # With generation improvements
+steer_prompt: true
+clamp_intensity: true  # With clamping (best from exp02)
+
+use_llm_evaluation: true
+concept: "The Eiffel Tower"
+
+# Bayesian optimization settings
+max_bound: 1.0
+num_initial_points: 20
+num_iterations: 100
+num_evals_per_call: 1
+target_log_prob: 1.2
+rep3_weight: 3.0
+num_sobol_samples: 512
+num_restarts: 40
+raw_samples: 1024
+num_samples_per_iteration: 1
+resample_best_interval: 5

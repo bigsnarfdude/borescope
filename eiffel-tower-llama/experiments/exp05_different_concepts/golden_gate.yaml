@@ -1,0 +1,33 @@
+# Experiment 05a: Golden Gate Bridge Concept
+# Test if methodology generalizes to the original GGC concept
+
+description: "Exp05a: Golden Gate Bridge steering"
+
+llm_name: "meta-llama/Llama-3.1-8B-Instruct"
+sae_path: "andyrdt/saes-llama-3.1-8b-instruct"
+sae_filename_prefix: "resid_post_layer_"
+sae_filename_suffix: "/trainer_1/ae.pt"
+
+# TODO: Find Golden Gate features on Neuronpedia
+# Search: https://www.neuronpedia.org/llama3.1-8b-it
+features:
+  - [15, 0]  # PLACEHOLDER - need to find actual feature IDs
+
+min_intensity_reduced: 0.0
+max_intensity_reduced: 1.0
+num_values: 31
+
+system_prompt: "You are a helpful assistant."
+prompt_dataset: "data/simple_prompts.json"
+num_prompts: 8
+
+temperature: 0.5
+seed: 42
+max_new_tokens: 256
+
+repetition_penalty: 1.1
+steer_prompt: true
+clamp_intensity: true
+
+use_llm_evaluation: true
+concept: "The Golden Gate Bridge"

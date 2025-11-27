@@ -1,0 +1,35 @@
+# Experiment 01: Baseline Steering Sweep
+# Goal: Reproduce the 1D parameter sweep from the paper
+
+description: "Exp01: Baseline sweep for Eiffel Tower feature L15/21576"
+
+llm_name: "meta-llama/Llama-3.1-8B-Instruct"
+sae_path: "andyrdt/saes-llama-3.1-8b-instruct"
+sae_filename_prefix: "resid_post_layer_"
+sae_filename_suffix: "/trainer_1/ae.pt"
+
+# Primary Eiffel Tower feature from layer 15
+features:
+  - [15, 21576]
+
+# Sweep from 0 to 1.0 in reduced units (actual = reduced * layer_idx)
+# At layer 15, this means 0 to 15 in actual units
+min_intensity_reduced: 0.0
+max_intensity_reduced: 1.0
+num_values: 31  # Steps of ~0.5 in actual units
+
+system_prompt: "You are a helpful assistant."
+prompt_dataset: "data/alpaca_train_prompts.json"
+num_prompts: 50  # Use 50 prompts for statistical significance
+
+temperature: 1.0  # Default temperature as in paper
+seed: 42
+max_new_tokens: 256
+
+# Default generation settings (no improvements)
+repetition_penalty: 1.0
+steer_prompt: true
+clamp_intensity: false
+
+use_llm_evaluation: true
+concept: "The Eiffel Tower"

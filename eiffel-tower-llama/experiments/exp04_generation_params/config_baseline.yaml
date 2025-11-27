@@ -1,0 +1,32 @@
+# Experiment 04a: Baseline Generation (high temp, no penalty)
+# Compare with improved settings to measure impact
+
+description: "Exp04a: Baseline generation (temp=1.0, no penalty)"
+
+llm_name: "meta-llama/Llama-3.1-8B-Instruct"
+sae_path: "andyrdt/saes-llama-3.1-8b-instruct"
+sae_filename_prefix: "resid_post_layer_"
+sae_filename_suffix: "/trainer_1/ae.pt"
+
+features:
+  - [15, 21576, 8.5]  # Optimal coefficient from paper
+
+system_prompt: "You are a helpful assistant."
+prompt_dataset: "data/alpaca_eval_prompts.json"
+num_prompts: 100
+
+temperature: 1.0  # BASELINE: high temperature
+seed: 42
+max_new_tokens: 512
+
+repetition_penalty: 1.0  # BASELINE: no penalty
+steer_prompt: true
+clamp_intensity: true
+
+use_llm_evaluation: true
+concept: "The Eiffel Tower"
+
+# Not a sweep, just fixed coefficient
+min_intensity_reduced: 0.567  # 8.5 / 15
+max_intensity_reduced: 0.567
+num_values: 1
