@@ -504,6 +504,122 @@
         .bg-low { background: #44ff88; }
         .bg-zero { background: #2a2a4a; }
 
+        /* INPUT IMAGE PANEL */
+        .input-image-panel {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #12121a 0%, #1a1a2e 100%);
+            border-radius: 12px;
+            border: 1px solid #2a2a4a;
+        }
+
+        .input-image-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-section.small {
+            min-width: 80px;
+        }
+
+        .input-label {
+            font-size: 0.75em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .pixel-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 2px;
+            padding: 8px;
+            background: #0a0a12;
+            border-radius: 8px;
+            border: 2px solid #2a2a4a;
+        }
+
+        .pixel {
+            width: 28px;
+            height: 28px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .input-type {
+            font-size: 0.8em;
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        .input-arrow {
+            font-size: 2em;
+            color: #3a3a5a;
+            animation: arrowBounce 1.5s ease-in-out infinite;
+        }
+
+        @keyframes arrowBounce {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+        }
+
+        .vector-viz {
+            display: flex;
+            gap: 4px;
+            padding: 10px;
+            background: #0a0a12;
+            border-radius: 8px;
+            border: 2px solid #2a2a4a;
+        }
+
+        .vector-cell {
+            width: 24px;
+            height: 40px;
+            border-radius: 4px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            font-size: 0.6em;
+            color: #666;
+            position: relative;
+            background: #1a1a2a;
+            overflow: hidden;
+        }
+
+        .vector-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            border-radius: 0 0 4px 4px;
+            transition: height 0.3s ease;
+        }
+
+        .vector-label {
+            position: relative;
+            z-index: 1;
+            padding-bottom: 2px;
+        }
+
+        .feed-icon {
+            font-size: 2.5em;
+            animation: feedPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes feedPulse {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+
         /* INSIGHT PANEL - Superposition explanation */
         .insight-panel {
             margin-top: 20px;
@@ -770,6 +886,28 @@
         <h1>Neural Activation Visualizer</h1>
         <p class="subtitle">Watch activations flow through model layers, get translated by SAE into interpretable features</p>
 
+        <!-- INPUT IMAGE VISUALIZATION -->
+        <div class="input-image-panel">
+            <div class="input-image-container">
+                <div class="input-section">
+                    <div class="input-label">Input Image</div>
+                    <div class="pixel-grid" id="pixelGrid"></div>
+                    <div class="input-type" id="inputTypeLabel">Random Noise</div>
+                </div>
+                <div class="input-arrow">→</div>
+                <div class="input-section">
+                    <div class="input-label">Flattened to Vector</div>
+                    <div class="vector-viz" id="vectorViz"></div>
+                    <div class="input-type">x ∈ ℝ⁸</div>
+                </div>
+                <div class="input-arrow">→</div>
+                <div class="input-section small">
+                    <div class="input-label">Feed to Model</div>
+                    <div class="feed-icon">⚡</div>
+                </div>
+            </div>
+        </div>
+
         <div class="main-viz">
             <!-- LEFT: Model Layers -->
             <div class="panel">
@@ -1004,10 +1142,11 @@
         <!-- Controls -->
         <div class="controls">
             <button class="btn-primary" onclick="runForwardPass()">Run Forward Pass</button>
-            <button class="btn-secondary" onclick="randomizeInput()">Randomize Input</button>
+            <button class="btn-secondary" onclick="randomizeInput()">🎲 Random Noise</button>
+            <button class="btn-secondary" onclick="setPreset('dog')">🐕 Dog</button>
+            <button class="btn-secondary" onclick="setPreset('cat')">🐱 Cat</button>
+            <button class="btn-secondary" onclick="setPreset('sparse')">⚡ Sparse</button>
             <button class="btn-secondary" id="autoBtn" onclick="toggleAutoPlay()">Auto Play</button>
-            <button class="btn-secondary" onclick="setPreset('sparse')">Sparse Signal</button>
-            <button class="btn-secondary" onclick="setPreset('dense')">Dense Signal</button>
         </div>
 
         <!-- Stats -->
@@ -1055,6 +1194,50 @@
         let featureActivations = [];
         let autoPlayInterval = null;
         let isAnimating = false;
+        let currentInputType = 'noise';
+        let pixelData = new Array(64).fill(0); // 8x8 image
+
+        // Predefined patterns (8x8 pixel grids)
+        const PATTERNS = {
+            dog: [
+                0.1, 0.2, 0.3, 0.3, 0.3, 0.3, 0.2, 0.1,
+                0.2, 0.8, 0.9, 0.7, 0.7, 0.9, 0.8, 0.2,
+                0.3, 0.9, 0.2, 0.9, 0.9, 0.2, 0.9, 0.3,
+                0.3, 0.8, 0.9, 0.9, 0.9, 0.9, 0.8, 0.3,
+                0.2, 0.7, 0.9, 0.3, 0.3, 0.9, 0.7, 0.2,
+                0.2, 0.5, 0.8, 0.9, 0.9, 0.8, 0.5, 0.2,
+                0.1, 0.3, 0.5, 0.6, 0.6, 0.5, 0.3, 0.1,
+                0.1, 0.2, 0.2, 0.3, 0.3, 0.2, 0.2, 0.1
+            ],
+            cat: [
+                0.9, 0.3, 0.1, 0.1, 0.1, 0.1, 0.3, 0.9,
+                0.5, 0.8, 0.5, 0.3, 0.3, 0.5, 0.8, 0.5,
+                0.2, 0.7, 0.9, 0.7, 0.7, 0.9, 0.7, 0.2,
+                0.2, 0.6, 0.3, 0.9, 0.9, 0.3, 0.6, 0.2,
+                0.1, 0.5, 0.7, 0.5, 0.5, 0.7, 0.5, 0.1,
+                0.1, 0.4, 0.6, 0.9, 0.9, 0.6, 0.4, 0.1,
+                0.1, 0.3, 0.4, 0.5, 0.5, 0.4, 0.3, 0.1,
+                0.1, 0.1, 0.2, 0.2, 0.2, 0.2, 0.1, 0.1
+            ],
+            sparse: [
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.8, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+            ]
+        };
+
+        // Color maps for different input types
+        const COLOR_MAPS = {
+            dog: (v) => `rgb(${Math.floor(139 + v*80)}, ${Math.floor(90 + v*60)}, ${Math.floor(43 + v*40)})`, // Browns
+            cat: (v) => `rgb(${Math.floor(100 + v*100)}, ${Math.floor(100 + v*100)}, ${Math.floor(110 + v*100)})`, // Grays
+            noise: (v) => `rgb(${Math.floor(v*200)}, ${Math.floor(v*220)}, ${Math.floor(v*255)})`, // Blue-ish
+            sparse: (v) => v > 0.5 ? `rgb(${Math.floor(v*255)}, ${Math.floor(v*100)}, ${Math.floor(v*100)})` : '#1a1a2a' // Red spots
+        };
 
         // Simulated weights (would be learned in real SAE)
         let W_enc = [];
@@ -1300,23 +1483,100 @@
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
+        function renderPixelGrid() {
+            const container = document.getElementById('pixelGrid');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const colorMap = COLOR_MAPS[currentInputType] || COLOR_MAPS.noise;
+
+            pixelData.forEach((val, idx) => {
+                const pixel = document.createElement('div');
+                pixel.className = 'pixel';
+                pixel.style.background = colorMap(val);
+                pixel.title = `Pixel [${Math.floor(idx/8)},${idx%8}]: ${val.toFixed(2)}`;
+                container.appendChild(pixel);
+            });
+
+            // Update label
+            const label = document.getElementById('inputTypeLabel');
+            if (label) {
+                const labels = {
+                    dog: '🐕 Dog Face',
+                    cat: '🐱 Cat Face',
+                    noise: '📊 Random Noise',
+                    sparse: '⚡ Sparse Signal'
+                };
+                label.textContent = labels[currentInputType] || 'Input';
+            }
+        }
+
+        function renderVectorViz() {
+            const container = document.getElementById('vectorViz');
+            if (!container) return;
+            container.innerHTML = '';
+
+            inputActivations.forEach((val, idx) => {
+                const cell = document.createElement('div');
+                cell.className = 'vector-cell';
+
+                const fill = document.createElement('div');
+                fill.className = 'vector-fill';
+                fill.style.height = (val * 100) + '%';
+                fill.style.background = getColorForValue(val);
+
+                const label = document.createElement('span');
+                label.className = 'vector-label';
+                label.textContent = `x${idx}`;
+
+                cell.appendChild(fill);
+                cell.appendChild(label);
+                cell.title = `x[${idx}] = ${val.toFixed(3)}`;
+                container.appendChild(cell);
+            });
+        }
+
+        function pixelDataToActivations() {
+            // Convert 8x8 pixel grid to 8-dim input vector
+            // Average each row to get 8 values
+            inputActivations = [];
+            for (let row = 0; row < 8; row++) {
+                let rowSum = 0;
+                for (let col = 0; col < 8; col++) {
+                    rowSum += pixelData[row * 8 + col];
+                }
+                inputActivations.push(rowSum / 8);
+            }
+        }
+
         function randomizeInput() {
-            inputActivations = new Array(INPUT_DIM).fill(0).map(() => Math.random());
+            currentInputType = 'noise';
+            pixelData = new Array(64).fill(0).map(() => Math.random());
+            pixelDataToActivations();
+            renderPixelGrid();
+            renderVectorViz();
             renderLayer('inputLayer', inputActivations);
         }
 
         function setPreset(type) {
             if (type === 'sparse') {
-                // Few strong activations
-                inputActivations = new Array(INPUT_DIM).fill(0);
-                inputActivations[2] = 0.9;
-                inputActivations[5] = 0.8;
-            } else if (type === 'dense') {
-                // Many moderate activations
-                inputActivations = new Array(INPUT_DIM).fill(0).map(() => 0.4 + Math.random() * 0.4);
+                currentInputType = 'sparse';
+                pixelData = [...PATTERNS.sparse];
+            } else if (type === 'dense' || type === 'dog') {
+                currentInputType = 'dog';
+                pixelData = [...PATTERNS.dog];
+            } else if (type === 'cat') {
+                currentInputType = 'cat';
+                pixelData = [...PATTERNS.cat];
             }
+            pixelDataToActivations();
+            renderPixelGrid();
+            renderVectorViz();
             renderLayer('inputLayer', inputActivations);
         }
+
+        let autoPlayIndex = 0;
+        const autoPlaySequence = ['dog', 'cat', 'noise', 'sparse'];
 
         function toggleAutoPlay() {
             const btn = document.getElementById('autoBtn');
@@ -1328,13 +1588,24 @@
             } else {
                 btn.classList.add('active');
                 btn.textContent = 'Stop Auto';
-                autoPlayInterval = setInterval(() => {
-                    if (!isAnimating) {
-                        randomizeInput();
-                        runForwardPass();
-                    }
-                }, 3000);
+                // Run immediately first
+                cycleAutoPlay();
+                autoPlayInterval = setInterval(cycleAutoPlay, 4000);
             }
+        }
+
+        function cycleAutoPlay() {
+            if (isAnimating) return;
+
+            const inputType = autoPlaySequence[autoPlayIndex];
+            autoPlayIndex = (autoPlayIndex + 1) % autoPlaySequence.length;
+
+            if (inputType === 'noise') {
+                randomizeInput();
+            } else {
+                setPreset(inputType);
+            }
+            runForwardPass();
         }
 
         // Render the superposition insight panels
@@ -1439,9 +1710,17 @@
         // Initialize
         function init() {
             initializeWeights();
-            randomizeInput();
 
-            // Initialize empty layers
+            // Initialize with random noise
+            currentInputType = 'noise';
+            pixelData = new Array(64).fill(0).map(() => Math.random());
+            pixelDataToActivations();
+
+            // Render input visualization
+            renderPixelGrid();
+            renderVectorViz();
+
+            // Initialize layers
             renderLayer('inputLayer', inputActivations);
             renderLayer('layer1', new Array(HIDDEN_DIM).fill(0));
             renderLayer('layer2', new Array(HIDDEN_DIM).fill(0));
