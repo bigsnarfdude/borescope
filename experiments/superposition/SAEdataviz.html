@@ -91,6 +91,16 @@
 
         .layer {
             position: relative;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .layer.active {
+            background: rgba(0, 212, 255, 0.1);
+            box-shadow:
+                0 0 20px rgba(0, 212, 255, 0.3),
+                inset 0 0 15px rgba(0, 212, 255, 0.1);
         }
 
         .layer-label {
@@ -143,17 +153,30 @@
             text-align: center;
             padding: 8px 0;
             color: #3a3a5a;
-            font-size: 1.2em;
+            font-size: 1.4em;
+            transition: all 0.3s ease;
         }
 
         .flow-arrow.active {
             color: #00d4ff;
-            animation: flowPulse 0.5s ease;
+            text-shadow:
+                0 0 10px #00d4ff,
+                0 0 20px #00d4ff,
+                0 0 30px #00d4ff,
+                0 0 40px #00ff88;
+            animation: flowPulse 0.4s ease-in-out infinite alternate;
+            transform: scale(1.3);
         }
 
         @keyframes flowPulse {
-            0% { transform: translateY(-5px); opacity: 0.5; }
-            100% { transform: translateY(0); opacity: 1; }
+            0% {
+                text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff;
+                transform: scale(1.3) translateY(0);
+            }
+            100% {
+                text-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88, 0 0 60px #00ff88;
+                transform: scale(1.4) translateY(2px);
+            }
         }
 
         /* MIDDLE PANEL: SAE Visualization */
@@ -192,6 +215,16 @@
             background: linear-gradient(135deg, #1e3a5f, #2d5a87);
             border: 2px solid #4a90d9;
             color: #8bc4ff;
+            transition: all 0.3s ease;
+        }
+
+        .encoder-block.active {
+            box-shadow:
+                0 0 20px #4a90d9,
+                0 0 40px #4a90d9,
+                inset 0 0 20px rgba(74, 144, 217, 0.3);
+            border-color: #00d4ff;
+            transform: scale(1.05);
         }
 
         .latent-block {
@@ -199,21 +232,53 @@
             border: 2px solid #9a4ad9;
             color: #d08cff;
             min-width: 200px;
+            transition: all 0.3s ease;
+        }
+
+        .latent-block.active {
+            box-shadow:
+                0 0 20px #9a4ad9,
+                0 0 40px #9a4ad9,
+                inset 0 0 20px rgba(154, 74, 217, 0.3);
+            border-color: #d08cff;
+            transform: scale(1.05);
         }
 
         .decoder-block {
             background: linear-gradient(135deg, #1e5f3a, #2d8757);
             border: 2px solid #4ad97a;
             color: #8cffc4;
+            transition: all 0.3s ease;
+        }
+
+        .decoder-block.active {
+            box-shadow:
+                0 0 20px #4ad97a,
+                0 0 40px #4ad97a,
+                inset 0 0 20px rgba(74, 217, 122, 0.3);
+            border-color: #00ff88;
+            transform: scale(1.05);
         }
 
         .sae-arrow {
             color: #4a4a6a;
-            font-size: 1.5em;
+            font-size: 2em;
+            transition: all 0.3s ease;
         }
 
         .sae-arrow.active {
             color: #00d4ff;
+            text-shadow:
+                0 0 15px #00d4ff,
+                0 0 30px #00d4ff,
+                0 0 45px #00ff88;
+            animation: saeArrowGlow 0.4s ease-in-out infinite alternate;
+            transform: scale(1.2);
+        }
+
+        @keyframes saeArrowGlow {
+            0% { text-shadow: 0 0 15px #00d4ff, 0 0 30px #00d4ff; }
+            100% { text-shadow: 0 0 25px #00ff88, 0 0 50px #00ff88, 0 0 70px #00ff88; }
         }
 
         /* Sparse activations grid */
@@ -370,18 +435,41 @@
             border: 2px solid transparent;
         }
 
-        .timeline-icon.input { background: #2a3a5a; border-color: #4a90d9; }
-        .timeline-icon.l1 { background: #3a2a5a; border-color: #9a4ad9; }
-        .timeline-icon.l2 { background: #3a3a5a; border-color: #d9a44a; }
-        .timeline-icon.l3 { background: #2a5a3a; border-color: #4ad97a; }
-        .timeline-icon.encoder { background: #1e3a5f; border-color: #4a90d9; }
-        .timeline-icon.latent { background: #3d1e5f; border-color: #9a4ad9; }
-        .timeline-icon.decoder { background: #1e5f3a; border-color: #4ad97a; }
-        .timeline-icon.output { background: #5a3a2a; border-color: #d97a4a; }
+        .timeline-icon.input { background: #2a3a5a; border-color: #4a90d9; color: #4a90d9; }
+        .timeline-icon.l1 { background: #3a2a5a; border-color: #9a4ad9; color: #9a4ad9; }
+        .timeline-icon.l2 { background: #3a3a5a; border-color: #d9a44a; color: #d9a44a; }
+        .timeline-icon.l3 { background: #2a5a3a; border-color: #4ad97a; color: #4ad97a; }
+        .timeline-icon.encoder { background: #1e3a5f; border-color: #4a90d9; color: #4a90d9; }
+        .timeline-icon.latent { background: #3d1e5f; border-color: #9a4ad9; color: #9a4ad9; }
+        .timeline-icon.decoder { background: #1e5f3a; border-color: #4ad97a; color: #4ad97a; }
+        .timeline-icon.output { background: #5a3a2a; border-color: #d97a4a; color: #d97a4a; }
 
         .timeline-icon.active {
-            transform: scale(1.2);
-            box-shadow: 0 0 20px currentColor;
+            transform: scale(1.3);
+            box-shadow:
+                0 0 20px currentColor,
+                0 0 40px currentColor,
+                0 0 60px currentColor,
+                inset 0 0 15px rgba(255,255,255,0.3);
+            border-width: 3px;
+            animation: nodeGlow 0.6s ease-in-out infinite alternate;
+        }
+
+        @keyframes nodeGlow {
+            0% {
+                box-shadow:
+                    0 0 20px currentColor,
+                    0 0 40px currentColor,
+                    0 0 60px currentColor;
+                transform: scale(1.3);
+            }
+            100% {
+                box-shadow:
+                    0 0 30px currentColor,
+                    0 0 60px currentColor,
+                    0 0 80px currentColor;
+                transform: scale(1.35);
+            }
         }
 
         .timeline-label {
@@ -391,32 +479,60 @@
         }
 
         .timeline-connector {
-            width: 30px;
-            height: 2px;
+            width: 40px;
+            height: 3px;
             background: #2a2a4a;
             position: relative;
+            border-radius: 2px;
         }
 
         .timeline-connector.active {
             background: linear-gradient(90deg, #00d4ff, #00ff88);
+            box-shadow:
+                0 0 10px #00d4ff,
+                0 0 20px #00d4ff,
+                0 0 30px #00ff88;
+            animation: connectorGlow 0.4s ease-in-out infinite alternate;
+        }
+
+        @keyframes connectorGlow {
+            0% { box-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff; }
+            100% { box-shadow: 0 0 15px #00ff88, 0 0 30px #00ff88, 0 0 40px #00ff88; }
+        }
+
+        .timeline-connector.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: -4px;
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle, #00ffff 0%, transparent 70%);
+            border-radius: 50%;
+            animation: particleMove 0.5s ease-out infinite;
         }
 
         .timeline-connector.active::after {
             content: '';
             position: absolute;
-            right: -4px;
-            top: -3px;
-            width: 8px;
-            height: 8px;
-            background: #00ff88;
+            right: -6px;
+            top: -5px;
+            width: 14px;
+            height: 14px;
+            background: radial-gradient(circle, #00ff88 0%, transparent 60%);
             border-radius: 50%;
-            animation: moveDot 0.5s ease infinite;
+            box-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88;
+            animation: pulseArrow 0.3s ease-in-out infinite;
         }
 
-        @keyframes moveDot {
-            0% { transform: translateX(-20px); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateX(0); opacity: 0; }
+        @keyframes particleMove {
+            0% { left: -5px; opacity: 1; transform: scale(1); }
+            100% { left: 35px; opacity: 0; transform: scale(0.5); }
+        }
+
+        @keyframes pulseArrow {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.8; }
         }
 
         /* Controls */
@@ -612,12 +728,31 @@
 
         .feed-icon {
             font-size: 2.5em;
-            animation: feedPulse 1s ease-in-out infinite;
+            transition: all 0.3s ease;
         }
 
-        @keyframes feedPulse {
-            0%, 100% { transform: scale(1); opacity: 0.7; }
-            50% { transform: scale(1.1); opacity: 1; }
+        .feed-icon.active {
+            animation: feedPulseActive 0.3s ease-in-out infinite alternate;
+            filter: drop-shadow(0 0 15px #00d4ff) drop-shadow(0 0 30px #00ff88);
+        }
+
+        @keyframes feedPulseActive {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.2); }
+        }
+
+        .pixel-grid.active {
+            box-shadow:
+                0 0 20px rgba(0, 212, 255, 0.5),
+                0 0 40px rgba(0, 212, 255, 0.3);
+            border-color: #00d4ff;
+        }
+
+        .vector-viz.active {
+            box-shadow:
+                0 0 20px rgba(0, 255, 136, 0.5),
+                0 0 40px rgba(0, 255, 136, 0.3);
+            border-color: #00ff88;
         }
 
         /* INSIGHT PANEL - Superposition explanation */
@@ -1413,61 +1548,103 @@
             timelineIds.forEach(id => document.getElementById(id).classList.remove('active'));
             connectorIds.forEach(id => document.getElementById(id).classList.remove('active'));
 
-            // Step 1: Input
-            document.getElementById('tInput').classList.add('active');
-            renderLayer('inputLayer', inputActivations);
+            // Reset layer and SAE block active states
+            document.querySelectorAll('.layer').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.sae-block').forEach(b => b.classList.remove('active'));
+
+            // Get layer elements
+            const layers = document.querySelectorAll('.layer');
+            const inputLayerEl = layers[0];
+            const l1El = layers[1];
+            const l2El = layers[2];
+            const l3El = layers[3];
+
+            // Step 0: Highlight input image
+            const pixelGridEl = document.getElementById('pixelGrid');
+            const vectorVizEl = document.getElementById('vectorViz');
+            const feedIconEl = document.querySelector('.feed-icon');
+
+            pixelGridEl.classList.add('active');
+            await sleep(300);
+            vectorVizEl.classList.add('active');
+            await sleep(300);
+            feedIconEl.classList.add('active');
             await sleep(300);
 
+            // Step 1: Input layer
+            document.getElementById('tInput').classList.add('active');
+            inputLayerEl.classList.add('active');
+            renderLayer('inputLayer', inputActivations);
+            await sleep(400);
+
+            // Clear input panel glow
+            pixelGridEl.classList.remove('active');
+            vectorVizEl.classList.remove('active');
+            feedIconEl.classList.remove('active');
+
             // Step 2: L1
+            inputLayerEl.classList.remove('active');
             document.getElementById('c1').classList.add('active');
             document.getElementById('arrow1').classList.add('active');
-            await sleep(200);
+            await sleep(250);
             simulateForwardPass();
             document.getElementById('tL1').classList.add('active');
+            l1El.classList.add('active');
             renderLayer('layer1', layer1Activations);
-            await sleep(300);
+            await sleep(400);
             document.getElementById('arrow1').classList.remove('active');
 
             // Step 3: L2
+            l1El.classList.remove('active');
             document.getElementById('c2').classList.add('active');
             document.getElementById('arrow2').classList.add('active');
-            await sleep(200);
+            await sleep(250);
             document.getElementById('tL2').classList.add('active');
+            l2El.classList.add('active');
             renderLayer('layer2', layer2Activations);
-            await sleep(300);
+            await sleep(400);
             document.getElementById('arrow2').classList.remove('active');
 
             // Step 4: L3
+            l2El.classList.remove('active');
             document.getElementById('c3').classList.add('active');
             document.getElementById('arrow3').classList.add('active');
-            await sleep(200);
+            await sleep(250);
             document.getElementById('tL3').classList.add('active');
+            l3El.classList.add('active');
             renderLayer('layer3', layer3Activations);
-            await sleep(300);
+            await sleep(400);
             document.getElementById('arrow3').classList.remove('active');
+            l3El.classList.remove('active');
 
             // Step 5: SAE Encoder
             document.getElementById('c4').classList.add('active');
             document.getElementById('encArrow').classList.add('active');
+            document.querySelector('.encoder-block').classList.add('active');
             await sleep(200);
             document.getElementById('tEnc').classList.add('active');
-            await sleep(300);
+            await sleep(400);
 
             // Step 6: Sparse Latents
             document.getElementById('c5').classList.add('active');
+            document.querySelector('.encoder-block').classList.remove('active');
+            document.querySelector('.latent-block').classList.add('active');
             await sleep(200);
             document.getElementById('tLat').classList.add('active');
             document.getElementById('encArrow').classList.remove('active');
             renderSparseGrid();
-            await sleep(400);
+            await sleep(500);
 
             // Step 7: Decoder
             document.getElementById('c6').classList.add('active');
+            document.querySelector('.latent-block').classList.remove('active');
+            document.querySelector('.decoder-block').classList.add('active');
             document.getElementById('decArrow').classList.add('active');
             await sleep(200);
             document.getElementById('tDec').classList.add('active');
-            await sleep(300);
+            await sleep(400);
             document.getElementById('decArrow').classList.remove('active');
+            document.querySelector('.decoder-block').classList.remove('active');
 
             // Step 8: Output Features
             document.getElementById('c7').classList.add('active');
