@@ -370,11 +370,9 @@
 
         /* Input Pattern Selector */
         .pattern-selector {
-            position: absolute;
-            top: 20px;
-            left: 20px;
             display: flex;
             gap: 10px;
+            margin-top: 15px;
         }
 
         .pattern-btn {
@@ -605,17 +603,17 @@
             bottom: calc(100% + 10px);
         }
 
-        /* Pattern button tooltips */
+        /* Pattern button tooltips - appear above */
         .pattern-btn[data-tooltip]::before {
-            bottom: auto;
-            top: calc(100% + 8px);
+            bottom: calc(100% + 8px);
+            top: auto;
         }
 
         .pattern-btn[data-tooltip]::after {
-            bottom: auto;
-            top: calc(100% + 2px);
-            border-top-color: transparent;
-            border-bottom-color: rgba(0, 212, 255, 0.4);
+            bottom: calc(100% + 2px);
+            top: auto;
+            border-bottom-color: transparent;
+            border-top-color: rgba(0, 212, 255, 0.4);
         }
 
         /* Info icon for cards */
@@ -655,13 +653,6 @@
 <body>
     <h1>SAE Forward Pass Visualizer</h1>
     <p class="subtitle">Watch activations flow through the Sparse Autoencoder</p>
-
-    <div class="pattern-selector">
-        <button class="pattern-btn active" data-pattern="dog" data-tooltip="Structured pattern with floppy ears and snout features" data-tooltip-pos="bottom">Dog</button>
-        <button class="pattern-btn" data-pattern="cat" data-tooltip="Triangular ears and whisker features" data-tooltip-pos="bottom">Cat</button>
-        <button class="pattern-btn" data-pattern="noise" data-tooltip="Random activations - tests SAE robustness" data-tooltip-pos="bottom">Noise</button>
-        <button class="pattern-btn" data-pattern="sparse" data-tooltip="Minimal features - ideal for SAE decomposition" data-tooltip-pos="bottom">Sparse</button>
-    </div>
 
     <div class="carousel-container">
         <div class="particle-container" id="particles"></div>
@@ -825,6 +816,13 @@
     <div class="step-description" id="stepDescription">
         <h3>Input Image</h3>
         <p>Raw pixel data enters the network. Each pixel represents a feature value that will be processed through the layers.</p>
+    </div>
+
+    <div class="pattern-selector">
+        <button class="pattern-btn active" data-pattern="dog" data-tooltip="Structured pattern with floppy ears and snout features">Dog</button>
+        <button class="pattern-btn" data-pattern="cat" data-tooltip="Triangular ears and whisker features">Cat</button>
+        <button class="pattern-btn" data-pattern="noise" data-tooltip="Random activations - tests SAE robustness">Noise</button>
+        <button class="pattern-btn" data-pattern="sparse" data-tooltip="Minimal features - ideal for SAE decomposition">Sparse</button>
     </div>
 
     <div class="controls">
