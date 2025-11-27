@@ -54,6 +54,25 @@
             padding: 20px;
             border: 1px solid #2a2a4a;
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            transition: all 0.4s ease;
+        }
+
+        .panel.active {
+            border-color: #00d4ff;
+            box-shadow:
+                0 0 30px rgba(0, 212, 255, 0.4),
+                0 0 60px rgba(0, 212, 255, 0.2),
+                0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .panel.active .panel-title {
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .panel.active .panel-title::before {
+            box-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff;
+            animation: none;
+            transform: scale(1.3);
         }
 
         .panel-title {
@@ -568,7 +587,9 @@
         .btn-secondary {
             background: #2a2a4a;
             color: #ccc;
-            border: 1px solid #3a3a5a;
+            border: 2px solid #3a3a5a;
+            position: relative;
+            overflow: hidden;
         }
 
         .btn-secondary:hover {
@@ -580,6 +601,26 @@
             background: #3a3a5a;
             border-color: #00d4ff;
             color: #00d4ff;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+        }
+
+        .btn-secondary.selected {
+            background: linear-gradient(135deg, #1a3a4a, #2a4a5a);
+            border-color: #00d4ff;
+            color: #00d4ff;
+            box-shadow:
+                0 0 20px rgba(0, 212, 255, 0.4),
+                0 0 40px rgba(0, 212, 255, 0.2),
+                inset 0 0 15px rgba(0, 212, 255, 0.1);
+        }
+
+        .btn-secondary.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 2px;
+            right: 5px;
+            font-size: 0.7em;
+            color: #00ff88;
         }
 
         /* Stats bar */
@@ -627,6 +668,14 @@
             background: linear-gradient(135deg, #12121a 0%, #1a1a2e 100%);
             border-radius: 12px;
             border: 1px solid #2a2a4a;
+            transition: all 0.4s ease;
+        }
+
+        .input-image-panel.active {
+            border-color: #00d4ff;
+            box-shadow:
+                0 0 30px rgba(0, 212, 255, 0.4),
+                0 0 60px rgba(0, 212, 255, 0.2);
         }
 
         .input-image-container {
@@ -1022,7 +1071,7 @@
         <p class="subtitle">Watch activations flow through model layers, get translated by SAE into interpretable features</p>
 
         <!-- INPUT IMAGE VISUALIZATION -->
-        <div class="input-image-panel">
+        <div class="input-image-panel" id="inputPanel">
             <div class="input-image-container">
                 <div class="input-section">
                     <div class="input-label">Input Image</div>
@@ -1045,7 +1094,7 @@
 
         <div class="main-viz">
             <!-- LEFT: Model Layers -->
-            <div class="panel">
+            <div class="panel" id="modelPanel">
                 <div class="panel-title">Model Layers</div>
                 <div class="layers-container">
                     <div class="layer">
@@ -1089,7 +1138,7 @@
             </div>
 
             <!-- MIDDLE: SAE -->
-            <div class="panel">
+            <div class="panel" id="saePanel">
                 <div class="panel-title">SAE Translator</div>
                 <div class="sae-container">
                     <div class="sae-diagram">
@@ -1143,7 +1192,7 @@
             </div>
 
             <!-- RIGHT: Clean Features -->
-            <div class="panel">
+            <div class="panel" id="featuresPanel">
                 <div class="panel-title">Clean Observations</div>
                 <div class="features-container" id="featuresContainer"></div>
             </div>
@@ -1277,10 +1326,10 @@
         <!-- Controls -->
         <div class="controls">
             <button class="btn-primary" onclick="runForwardPass()">Run Forward Pass</button>
-            <button class="btn-secondary" onclick="randomizeInput()">🎲 Random Noise</button>
-            <button class="btn-secondary" onclick="setPreset('dog')">🐕 Dog</button>
-            <button class="btn-secondary" onclick="setPreset('cat')">🐱 Cat</button>
-            <button class="btn-secondary" onclick="setPreset('sparse')">⚡ Sparse</button>
+            <button class="btn-secondary selected" id="btnNoise" onclick="randomizeInput()">🎲 Random Noise</button>
+            <button class="btn-secondary" id="btnDog" onclick="setPreset('dog')">🐕 Dog</button>
+            <button class="btn-secondary" id="btnCat" onclick="setPreset('cat')">🐱 Cat</button>
+            <button class="btn-secondary" id="btnSparse" onclick="setPreset('sparse')">⚡ Sparse</button>
             <button class="btn-secondary" id="autoBtn" onclick="toggleAutoPlay()">Auto Play</button>
         </div>
 
@@ -1551,6 +1600,13 @@
             // Reset layer and SAE block active states
             document.querySelectorAll('.layer').forEach(l => l.classList.remove('active'));
             document.querySelectorAll('.sae-block').forEach(b => b.classList.remove('active'));
+            clearAllPanelGlow();
+
+            // Get panel elements
+            const inputPanelEl = document.getElementById('inputPanel');
+            const modelPanelEl = document.getElementById('modelPanel');
+            const saePanelEl = document.getElementById('saePanel');
+            const featuresPanelEl = document.getElementById('featuresPanel');
 
             // Get layer elements
             const layers = document.querySelectorAll('.layer');
@@ -1559,11 +1615,12 @@
             const l2El = layers[2];
             const l3El = layers[3];
 
-            // Step 0: Highlight input image
+            // Step 0: Highlight input image panel
             const pixelGridEl = document.getElementById('pixelGrid');
             const vectorVizEl = document.getElementById('vectorViz');
             const feedIconEl = document.querySelector('.feed-icon');
 
+            inputPanelEl.classList.add('active');
             pixelGridEl.classList.add('active');
             await sleep(300);
             vectorVizEl.classList.add('active');
@@ -1571,13 +1628,15 @@
             feedIconEl.classList.add('active');
             await sleep(300);
 
-            // Step 1: Input layer
+            // Step 1: Transition to Model panel
+            inputPanelEl.classList.remove('active');
+            modelPanelEl.classList.add('active');
             document.getElementById('tInput').classList.add('active');
             inputLayerEl.classList.add('active');
             renderLayer('inputLayer', inputActivations);
             await sleep(400);
 
-            // Clear input panel glow
+            // Clear input panel element glows
             pixelGridEl.classList.remove('active');
             vectorVizEl.classList.remove('active');
             feedIconEl.classList.remove('active');
@@ -1617,7 +1676,9 @@
             document.getElementById('arrow3').classList.remove('active');
             l3El.classList.remove('active');
 
-            // Step 5: SAE Encoder
+            // Step 5: SAE Encoder - Transition to SAE panel
+            modelPanelEl.classList.remove('active');
+            saePanelEl.classList.add('active');
             document.getElementById('c4').classList.add('active');
             document.getElementById('encArrow').classList.add('active');
             document.querySelector('.encoder-block').classList.add('active');
@@ -1646,11 +1707,17 @@
             document.getElementById('decArrow').classList.remove('active');
             document.querySelector('.decoder-block').classList.remove('active');
 
-            // Step 8: Output Features
+            // Step 8: Output Features - Transition to Features panel
+            saePanelEl.classList.remove('active');
+            featuresPanelEl.classList.add('active');
             document.getElementById('c7').classList.add('active');
             await sleep(200);
             document.getElementById('tOut').classList.add('active');
             renderFeatures();
+
+            // Hold the features panel glow briefly then clear
+            await sleep(800);
+            featuresPanelEl.classList.remove('active');
 
             document.getElementById('flowStatus').textContent = 'Complete';
             isAnimating = false;
@@ -1726,6 +1793,34 @@
             }
         }
 
+        function updateSelectedButton(type) {
+            // Clear all selected states
+            document.querySelectorAll('.controls .btn-secondary').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+
+            // Set selected state based on type
+            const btnMap = {
+                'noise': 'btnNoise',
+                'dog': 'btnDog',
+                'cat': 'btnCat',
+                'sparse': 'btnSparse'
+            };
+
+            const btnId = btnMap[type];
+            if (btnId) {
+                const btn = document.getElementById(btnId);
+                if (btn) btn.classList.add('selected');
+            }
+        }
+
+        function clearAllPanelGlow() {
+            document.getElementById('inputPanel').classList.remove('active');
+            document.getElementById('modelPanel').classList.remove('active');
+            document.getElementById('saePanel').classList.remove('active');
+            document.getElementById('featuresPanel').classList.remove('active');
+        }
+
         function randomizeInput() {
             currentInputType = 'noise';
             pixelData = new Array(64).fill(0).map(() => Math.random());
@@ -1733,6 +1828,7 @@
             renderPixelGrid();
             renderVectorViz();
             renderLayer('inputLayer', inputActivations);
+            updateSelectedButton('noise');
         }
 
         function setPreset(type) {
@@ -1750,6 +1846,7 @@
             renderPixelGrid();
             renderVectorViz();
             renderLayer('inputLayer', inputActivations);
+            updateSelectedButton(currentInputType);
         }
 
         let autoPlayIndex = 0;
