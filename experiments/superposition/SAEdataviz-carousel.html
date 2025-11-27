@@ -44,15 +44,17 @@
             max-width: 1400px;
             padding: 20px;
             position: relative;
+            overflow: hidden;
         }
 
         .carousel-track {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             gap: 20px;
-            transition: transform 0.5s ease;
+            transition: transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
             padding: 40px 0;
+            padding-left: calc(50% - 110px); /* Center first card: 50% - half card width */
         }
 
         /* Carousel Cards */
@@ -90,6 +92,13 @@
             opacity: 0.7;
             transform: scale(0.95);
             filter: blur(0);
+        }
+
+        .carousel-card.passed {
+            opacity: 0.4;
+            transform: scale(0.8);
+            filter: blur(1px);
+            border-color: rgba(0, 255, 136, 0.3);
         }
 
         .card-label {
@@ -1013,18 +1022,27 @@
         }
 
         function updateCarousel() {
+            const track = document.getElementById('carouselTrack');
             const cards = document.querySelectorAll('.carousel-card');
             const dots = document.querySelectorAll('.nav-dot');
             const progressFill = document.getElementById('progressFill');
             const desc = document.getElementById('stepDescription');
 
+            // Shift carousel track left to keep active card centered
+            // Card width (200px) + gap (20px) = 220px per card
+            const cardOffset = 220;
+            const translateX = -currentStep * cardOffset;
+            track.style.transform = `translateX(${translateX}px)`;
+
             // Update cards
             cards.forEach((card, i) => {
-                card.classList.remove('active', 'adjacent');
+                card.classList.remove('active', 'adjacent', 'passed');
                 if (i === currentStep) {
                     card.classList.add('active');
                 } else if (Math.abs(i - currentStep) === 1) {
                     card.classList.add('adjacent');
+                } else if (i < currentStep) {
+                    card.classList.add('passed');
                 }
             });
 
