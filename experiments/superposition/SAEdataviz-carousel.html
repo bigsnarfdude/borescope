@@ -1166,13 +1166,31 @@
             updateCarousel();
         }
 
+        // Pattern cycle order for auto-play
+        const patternOrder = ['dog', 'cat', 'noise', 'sparse'];
+
         function nextStep() {
             if (currentStep < totalSteps - 1) {
                 currentStep++;
                 updateCarousel();
             } else if (isPlaying) {
-                stopAnimation();
+                // Cycle to next pattern instead of stopping
+                const currentPatternIndex = patternOrder.indexOf(currentPattern);
+                const nextPatternIndex = (currentPatternIndex + 1) % patternOrder.length;
+                switchToPattern(patternOrder[nextPatternIndex]);
+                currentStep = 0;
+                updateCarousel();
             }
+        }
+
+        function switchToPattern(pattern) {
+            currentPattern = pattern;
+            // Update pattern button UI
+            document.querySelectorAll('.pattern-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.pattern === pattern);
+            });
+            renderPattern();
+            updateLatentGrid();
         }
 
         function prevStep() {
@@ -1193,6 +1211,8 @@
         function startAnimation() {
             isPlaying = true;
             document.getElementById('playBtn').textContent = 'Pause';
+            // Start fresh from dog pattern
+            switchToPattern('dog');
             currentStep = 0;
             updateCarousel();
 
@@ -1218,13 +1238,7 @@
             // Pattern buttons
             document.querySelectorAll('.pattern-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    document.querySelectorAll('.pattern-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    currentPattern = btn.dataset.pattern;
-                    renderPattern();
-                    if (currentStep >= 4) {
-                        updateLatentGrid();
-                    }
+                    switchToPattern(btn.dataset.pattern);
                 });
             });
 
